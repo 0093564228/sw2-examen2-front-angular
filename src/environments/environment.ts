@@ -1,9 +1,18 @@
-// Configuración de entorno. apiUrl apunta al backend Spring Boot + GraphQL.
+// Entorno de DESARROLLO LOCAL.
+// Estas URLs apuntan a los servicios corriendo en tu máquina con docker-compose o de forma manual.
+// Al compilar con `ng build --configuration production`, Angular reemplaza este archivo por environment.prod.ts.
 export const environment = {
   production: false,
-  apiUrl: 'https://rrhh-prod.eba-p8y8badt.us-east-2.elasticbeanstalk.com',
+
+  // Spring Boot — Autenticación, GraphQL, gestión RRHH principal.
+  apiUrl: 'http://localhost:8080',
   graphqlPath: '/graphql',
   loginPath: '/api/v1/auth/login',
   refreshPath: '/api/v1/auth/refresh',
-  fastapiGql: 'https://hr-fastapi.duckdns.org',
+
+  // NestJS — Subida de archivos (S3/MinIO), automatizaciones n8n, bitácora DynamoDB.
+  nestUrl: 'http://localhost:3000',
+
+  // FastAPI — Servicio Biométrico e IA.
+  fastapiUrl: 'http://localhost:8001',
 };
