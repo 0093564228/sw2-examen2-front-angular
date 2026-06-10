@@ -14,6 +14,7 @@ const ALLOWED_ORIGINS: string[] = [
   environment.apiUrl,
   environment.nestUrl,
   environment.fastapiUrl,
+  environment.fastapiGql,
 ];
 
 /**

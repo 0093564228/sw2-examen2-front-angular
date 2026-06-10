@@ -15,4 +15,6 @@ export const environment = {
 
   // FastAPI — Servicio Biométrico e IA (DuckDNS)
   fastapiUrl: 'https://hr-fastapi.duckdns.org',
+  // fastapiGql mantiene compatibilidad con el código existente que apunta al endpoint GraphQL.
+  fastapiGql: 'https://hr-fastapi.duckdns.org/graphql',
 };

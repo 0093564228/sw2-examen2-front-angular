@@ -15,4 +15,6 @@ export const environment = {
 
   // FastAPI — Servicio Biométrico e IA.
   fastapiUrl: 'http://localhost:8001',
+  // fastapiGql: mantiene compatibilidad con código existente que apunta directo al endpoint GraphQL.
+  fastapiGql: 'http://localhost:8001/graphql',
 };
