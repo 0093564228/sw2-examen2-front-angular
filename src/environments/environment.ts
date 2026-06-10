@@ -13,7 +13,7 @@ export const environment = {
   // vía GraphQL. En desarrollo local apunta al Nest en :3000.
   // En la nube sería la URL pública del túnel cloudflared, p.ej.
   // 'https://xxxx.trycloudflare.com' (ojo: esa URL cambia en cada arranque del túnel).
-  nestUrl: 'https://tomorrow-pictures-guidelines-applicable.trycloudflare.com',
+  nestUrl: 'https://tomorrow-pictures-guidelines-applicable.trycloudflare.com/graphql',
   // FastAPI (Módulo 1, Jose): URL base y endpoint GraphQL del servicio de asistencia/ML.
   fastapiUrl: 'https://hr-fastapi.duckdns.org',
   fastapiGql: 'https://hr-fastapi.duckdns.org/graphql',
