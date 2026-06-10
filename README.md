@@ -2,11 +2,13 @@
 
 Aplicación cliente (**SPA**) del sistema RRHH, desarrollada con **Angular 16**. Se conecta a tres microservicios backend:
 
-| Microservicio | Tecnología | URL por defecto (local) |
+| Microservicio | Tecnología | URL de producción |
 |---|---|---|
-| Core HR & Auth | Spring Boot (AWS EB) | `https://rrhh-prod.eba-p8y8badt.us-east-2.elasticbeanstalk.com` |
-| Seguridad / Bitácora | NestJS | `http://localhost:3000` |
+| Core HR & Auth | Spring Boot (AWS Elastic Beanstalk) | `https://rrhh-prod.eba-p8y8badt.us-east-2.elasticbeanstalk.com` |
+| Seguridad / Bitácora | NestJS (Cloudflare Tunnel) | `https://tomorrow-pictures-guidelines-applicable.trycloudflare.com/graphql` |
 | Asistencia / IA | FastAPI (DuckDNS) | `https://hr-fastapi.duckdns.org` |
+
+> ⚠️ La URL del túnel de NestJS (`trycloudflare.com`) **cambia cada vez que se reinicia el túnel**. Actualiza `nestUrl` en los environments cuando esto ocurra.
 
 ---
 
@@ -55,23 +57,25 @@ npm install
 
 > Si hay conflictos de versiones entre paquetes usa: `npm install --legacy-peer-deps`
 
-### 2. Configurar variables de entorno (desarrollo)
+### 2. Variables de entorno para desarrollo
 
-El archivo [`src/environments/environment.ts`](src/environments/environment.ts) controla las URLs en desarrollo.  
-No necesitas tocarlo si usas los servicios cloud del equipo, pero si levantas backends locales ajusta los valores:
+El archivo [`src/environments/environment.ts`](src/environments/environment.ts) se usa automáticamente con `npm start`.  
+Los valores actuales apuntan a los servicios cloud del equipo:
 
 ```typescript
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080',          // Spring Boot local
-  graphqlPath: '/graphql',
-  loginPath: '/api/v1/auth/login',
-  refreshPath: '/api/v1/auth/refresh',
-  nestUrl: 'http://localhost:3000',          // NestJS local
-  fastapiUrl: 'http://localhost:8000',       // FastAPI local
-  fastapiGql: 'http://localhost:8000/graphql',
+  apiUrl:       'https://rrhh-prod.eba-p8y8badt.us-east-2.elasticbeanstalk.com',
+  graphqlPath:  '/graphql',
+  loginPath:    '/api/v1/auth/login',
+  refreshPath:  '/api/v1/auth/refresh',
+  nestUrl:      'https://tomorrow-pictures-guidelines-applicable.trycloudflare.com/graphql',
+  fastapiUrl:   'https://hr-fastapi.duckdns.org',
+  fastapiGql:   'https://hr-fastapi.duckdns.org/graphql',
 };
 ```
+
+Si levantas los backends localmente, cambia `apiUrl` a `http://localhost:8080`, `nestUrl` a `http://localhost:3000` y `fastapiUrl`/`fastapiGql` a `http://localhost:8000`.
 
 ### 3. Levantar el servidor de desarrollo
 
@@ -79,7 +83,7 @@ export const environment = {
 npm start
 ```
 
-> Internamente ejecuta `ng serve`. El servidor escucha en **http://localhost:4200** con *Live Reload* activo.
+> Internamente ejecuta `ng serve`. Escucha en **http://localhost:4200** con *Live Reload* activo.
 
 ### 4. Abrir en el navegador
 
@@ -89,7 +93,7 @@ npm start
 
 ## 🐳 Inicio con Docker (local)
 
-El [`Dockerfile`](Dockerfile) incluido levanta el servidor de desarrollo dentro de un contenedor (útil para reproducir el entorno en cualquier máquina).
+El [`Dockerfile`](Dockerfile) incluido levanta el servidor de desarrollo dentro de un contenedor.
 
 ```bash
 # Construir la imagen
@@ -101,58 +105,52 @@ docker run -p 4200:4200 rrhh-frontend
 
 Accede en: [http://localhost:4200](http://localhost:4200)
 
-> El servidor corre con `--host 0.0.0.0 --disable-host-check` para aceptar conexiones desde el host.
-
 ---
 
 ## 🚀 Build y despliegue en producción
 
-### 1. Configurar variables de entorno (producción)
+### 1. Variables de entorno para producción
 
-Edita [`src/environments/environment.prod.ts`](src/environments/environment.prod.ts) con las URLs reales de tus servicios:
+Edita [`src/environments/environment.prod.ts`](src/environments/environment.prod.ts) si necesitas cambiar alguna URL de producción:
 
 ```typescript
 export const environment = {
   production: true,
-  apiUrl: 'https://rrhh-prod.eba-p8y8badt.us-east-2.elasticbeanstalk.com',
-  graphqlPath: '/graphql',
-  loginPath: '/api/v1/auth/login',
-  refreshPath: '/api/v1/auth/refresh',
-  nestUrl: 'https://<tu-nest-en-produccion>.com',   // ← reemplazar
-  fastapiUrl: 'https://hr-fastapi.duckdns.org',
-  fastapiGql: 'https://hr-fastapi.duckdns.org/graphql',
+  apiUrl:       'https://rrhh-prod.eba-p8y8badt.us-east-2.elasticbeanstalk.com',
+  graphqlPath:  '/graphql',
+  loginPath:    '/api/v1/auth/login',
+  refreshPath:  '/api/v1/auth/refresh',
+  nestUrl:      'https://tomorrow-pictures-guidelines-applicable.trycloudflare.com/graphql',
+  fastapiUrl:   'https://hr-fastapi.duckdns.org',
+  fastapiGql:   'https://hr-fastapi.duckdns.org/graphql',
 };
 ```
 
-> **Importante:** nunca uses `environment.ts` para cambios de producción; Angular lo reemplaza automáticamente con `environment.prod.ts` al compilar con `--configuration production`.
+> **Nunca** edites `environment.ts` para producción. Angular lo reemplaza automáticamente con `environment.prod.ts` al compilar con `--configuration production`.
 
 ### 2. Generar el bundle de producción
 
 ```bash
-npm run build
+npm run build:prod
 ```
 
-> Equivale a `ng build --configuration production`. Los archivos optimizados y minificados se generan en `dist/code-prueba/`.
+> Equivale a `ng build --configuration production`. Los artefactos optimizados y minificados se generan en **`dist/code-prueba/`**.
 
 ### 3. Opciones de despliegue
 
-#### Netlify (recomendado — configuración ya incluida)
-
-El proyecto incluye `netlify.toml` (o ajustes equivalentes en el dashboard de Netlify):
+#### Netlify (recomendado)
 
 | Campo | Valor |
 |---|---|
-| Build command | `npm run build` |
+| Build command | `npm run build:prod` |
 | Publish directory | `dist/code-prueba` |
 
-Conecta el repositorio en [app.netlify.com](https://app.netlify.com) y el despliegue es automático en cada `git push` a `master`.
+Conecta el repositorio en [app.netlify.com](https://app.netlify.com). El despliegue es automático en cada `git push` a `master`.
 
-#### Servidor estático (Nginx / Apache)
+#### Servidor estático (Nginx)
 
-Copia el contenido de `dist/code-prueba/` a la raíz del servidor web.  
-Para que el enrutamiento de Angular (HTML5 history API) funcione correctamente, redirige todas las rutas a `index.html`.
+Copia el contenido de `dist/code-prueba/` a la raíz del servidor web y redirige todas las rutas a `index.html` para el enrutamiento SPA:
 
-**Ejemplo para Nginx:**
 ```nginx
 server {
     listen 80;
@@ -165,18 +163,6 @@ server {
 }
 ```
 
-#### Docker (producción)
-
-Construye una imagen que sirva el build con Nginx:
-
-```bash
-docker build \
-  --build-arg CONFIGURATION=production \
-  -t rrhh-frontend:prod .
-```
-
-> El `Dockerfile` actual levanta el servidor de desarrollo (`ng serve`). Para producción se recomienda usar una imagen multi-stage con Nginx — consulta con el equipo de DevOps.
-
 ---
 
 ## Scripts disponibles
@@ -184,7 +170,8 @@ docker build \
 | Comando | Descripción |
 |---|---|
 | `npm start` | Inicia el servidor de desarrollo (`ng serve`) en `localhost:4200` |
-| `npm run build` | Genera el bundle de producción en `dist/` |
+| `npm run build` | Build de desarrollo (sin optimizaciones) |
+| `npm run build:prod` | **Build de producción** con `--configuration production` |
 | `npm run watch` | Build en modo watch (reconstruye al guardar cambios) |
 | `npm test` | Ejecuta los tests unitarios con Karma + Jasmine |
 
@@ -197,17 +184,17 @@ rrhh_front_angular/
 ├── src/
 │   ├── app/
 │   │   ├── modules/
-│   │   │   ├── auth/          # Login, guards, JWT
-│   │   │   └── core-hr/       # Empleados, Departamentos, Asistencia
+│   │   │   ├── auth/               # Login, guards, JWT
+│   │   │   └── core-hr/            # Empleados, Departamentos, Asistencia
 │   │   ├── pages/
-│   │   │   └── dashboard/     # Dashboard principal con reportes
+│   │   │   └── dashboard/          # Dashboard con reportes IA
 │   │   └── _metronic/
 │   │       └── shared/
 │   │           └── interceptors/
 │   │               └── auth.interceptor.ts  # Adjunta JWT a microservicios propios
 │   └── environments/
-│       ├── environment.ts      # Configuración LOCAL (desarrollo)
-│       └── environment.prod.ts # Configuración PRODUCCIÓN (nube)
+│       ├── environment.ts           # ← Desarrollo (npm start)
+│       └── environment.prod.ts      # ← Producción (npm run build:prod)
 ├── Dockerfile
 └── package.json
 ```
@@ -217,13 +204,16 @@ rrhh_front_angular/
 ## Solución de problemas frecuentes
 
 ### `npm error Missing script: "dev"`
-Este proyecto usa `npm start` (no `npm run dev`). Ejecuta:
+Este proyecto usa `npm start`, no `npm run dev`:
 ```bash
 npm start
 ```
 
+### La Bitácora de Auditoría no carga datos
+El `nestUrl` apunta a un túnel Cloudflare que cambia en cada reinicio. Actualiza `nestUrl` en ambos environments con la nueva URL del túnel y reinicia el servidor.
+
 ### `Property 'fastapiUrl' does not exist`
-Asegúrate de que `src/environments/environment.ts` contenga la propiedad `fastapiUrl`. Ver sección [Configurar variables de entorno](#2-configurar-variables-de-entorno-desarrollo).
+Asegúrate de que `src/environments/environment.ts` y `environment.prod.ts` contengan la propiedad `fastapiUrl`. Ver sección [Variables de entorno](#2-variables-de-entorno-para-desarrollo).
 
 ### Conflictos de dependencias en `npm install`
 ```bash
