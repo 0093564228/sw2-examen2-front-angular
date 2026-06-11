@@ -5,7 +5,7 @@ export const environment = {
   production: false,
   // Spring Boot local (Módulos 1/2). En la nube (Abel) sería, p.ej.:
   // 'http://beanstalk-rrhh-app-prod.eba-rvkrzdtv.us-east-2.elasticbeanstalk.com'
-  apiUrl: 'https://rrhh-prod.eba-p8y8badt.us-east-2.elasticbeanstalk.com',
+  apiUrl: 'https://hr-springboot.duckdns.org',
   graphqlPath: '/graphql',
   loginPath: '/api/v1/auth/login',
   refreshPath: '/api/v1/auth/refresh',
